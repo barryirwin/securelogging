@@ -1,0 +1,47 @@
+version: "2"
+
+# If the image name for slog-server is changed in `build-docker-image.sh`, update it with the same here
+services:
+  slog-server:
+    # for docker ps
+    container_name: slog_server
+    # for `hostname` within the container, no random tags in Influx
+    hostname: slog_server
+    image: slog-server
+    # Flags for the slog-server bin
+    command: "-password my-fancy-password"
+    # If you want to start the container on daemon startup
+    #restart: always
+    volumes:
+      - ./data/slog-server:/app/slog-data
+    ports:
+      - 3333:3333
+      - 3333:3333/udp
+      - 514:514
+      - 514:514/udp
+    user: "1000"
+  grafana:
+    container_name: slog_grafana
+    image: grafana/grafana:7.5.5
+    # If you want to start the container on daemon startup
+    #restart: always
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+    user: "1000"
+  influxdb:
+    image: influxdb:1.8.3
+    container_name: slog_influxdb
+    # If you want to start the container on daemon startup
+    #restart: always
+    volumes:
+      - ./data/influx:/var/lib/influxdb
+    ports:
+      - 8086:8086
+    user: "1000"
+    environment:
+      - INFLUXDB_DATA_MAX_SERIES_PER_DATABASE=0
+      - INFLUXDB_DATA_MAX_VALUES_PER_TAG=0
+      - INFLUXDB_DATA_INDEX_VERSION=tsi1
+      - INFLUXDB_REPORTING_DISABLED=true
